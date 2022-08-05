@@ -97,6 +97,10 @@ def main():
       robot_position = bot.arm.get_joint_commands() 
       
       if hand_status > 0.5 and hand_status <= 1 and hand_life >= 4 or number_of_hands == 0 and robot_position == [0.0, -0.00033543302359544114, 0.00047924695847695667, -0.00014381393488124145, -5.3723151317487e-18]:
+         
+         if robot_position[0] == 0 and robot_position[1] <= -1.7 and robot_position[2] >= 1.5 and robot_position[3] >= 0.8 and robot_position[4] == 0:
+            exit()
+         
          bot.arm.set_single_joint_position("waist", -np.pi/2.0)    
          bot.arm.set_ee_cartesian_trajectory(x=0.05,z=-0.17)
          bot.gripper.open()
@@ -107,6 +111,10 @@ def main():
          bot.arm.go_to_sleep_pose()        
                            
       if hand_status < 0.5 and hand_life >= 4:
+      
+         #if robot_position[0] == 0 and robot_position[1] <= -1.7 and robot_position[2] >= 1.5 and robot_position[3] >= 0.8 and robot_position[4] == 0:
+            #exit()
+            
          bot.arm.set_ee_pose_components(x=x_robot_control,y=y_robot_control,z=z_robot_control)       
          bot.gripper.open()
          bot.arm.go_to_home_pose()
