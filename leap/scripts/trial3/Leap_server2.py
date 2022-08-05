@@ -31,14 +31,15 @@ def leap_data():
   
   """NOTE: the commented out publishers can be used they are already being transferred via the udp"""
   
-  """right hand publishers"""
+  """hand publishers"""
   #pub_palm_position_right = rospy.Publisher('/Leap/XYZ', Point, queue_size=10)
   pub_hand_id = rospy.Publisher('hand_id', Float32, queue_size = 1)
   #pub_hand_angles_right = rospy.Publisher('LeapHandAngles', Point, queue_size = 10)
   pub_palm_position_stable = rospy.Publisher('hand_position_stable', Point, queue_size = 1)
   #pub_hand_velocity_right = rospy.Publisher('Hand_velocity', Point, queue_size = 10)
+  pub_life_of_hand = rospy.Publisher('life_of_hand', Float32, queue_size = 1)
   
-  rate = rospy.Rate(100)
+  rate = rospy.Rate(50)
   
   while not rospy.is_shutdown():
   
@@ -46,7 +47,7 @@ def leap_data():
     
      data, address = s.recvfrom(4096)
           
-     data = struct.unpack('<7f', data)      
+     data = struct.unpack('<8f', data)      
      
      number_of_hand_in_frame = data[0]
      
@@ -57,11 +58,14 @@ def leap_data():
      coordinates.x = data[3]*0.001
      coordinates.y = data[4]*0.001
      coordinates.z = data[5]*0.001
+     
+     life_of_hand_in_sensor = data[6]
           
      pub_number_of_hands.publish(number_of_hand_in_frame)
      pub_hand_state.publish(strength)
      pub_hand_id.publish(hand_identifier)
      pub_palm_position_stable.publish(coordinates)
+     pub_life_of_hand.publish(life_of_hand_in_sensor)
      
      rate.sleep()
      

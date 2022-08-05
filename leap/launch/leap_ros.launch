@@ -1,0 +1,8 @@
+<launch>
+
+	<node name="Leap_data" pkg="leap" type="Leap_server2.py" />
+	<node name="XYZ_robot_coordinates" pkg="leap" type="LeapListener2.py" />
+	<node name="Hand_data" pkg="leap" type="hand_status2.py" />
+	<node name="Hand_life" pkg="leap" type="hand_life.py" />
+
+</launch>

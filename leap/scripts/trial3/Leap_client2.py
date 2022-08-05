@@ -15,7 +15,7 @@ AddressPort = ("127.0.0.1", 57410)
 UDPSocket = socket.socket(family = socket.AF_INET, type = socket.SOCK_DGRAM)
 
 class LeapMotionListener(Leap.Listener):
-
+    ctr = 4
     finger_names = ['thumb','Index','Middle','Ring','Pinky']
     bone_names = ['Metacarpal','Proximal','Intermediate','Distal']
     state_names = ['INVALID_STATE','STATE_START','STATE_UPDATE','STATE_END']
@@ -39,14 +39,33 @@ class LeapMotionListener(Leap.Listener):
         print "Exited"
 
     def on_frame(self,controller):
-     
+        
         frame = controller.frame() 
 
         handnummer  = len(frame.hands)
         
+        if handnummer < 1:
+           #print("No hand in frame so the data being sent has default values!!!")
+           LeapMotionListener.ctr = 4
+           strength = 1
+           hand_identifier = 0
+           pitch = 0
+           yaw = 0
+           roll = 0
+           filtered_hand = [0,0,0]
+           hand_speed  = [0,0,0]
+           life_time_of_hand = 0
+           bytes = [0,strength,hand_identifier,filtered_hand[0],filtered_hand[1],filtered_hand[2],life_time_of_hand,1]
+           info = struct.pack('<8f', *bytes)
+           UDPSocket.sendto(info ,AddressPort)
+           
+        self.id = LeapMotionListener.ctr
+        #print('IDDDDDDDDD/n/n/n/n/n/',self.id)
+
+        
         if handnummer > 0:
             print "Hands: %d" % (handnummer)
-          
+                     
         for hand in frame.hands:
             handType = " Left Hand " if hand.is_left else " Right Hand "
             print handType + "Hand ID: " + str(hand.id) + " Palm Position: " + str(hand.palm_position)
@@ -62,15 +81,16 @@ class LeapMotionListener(Leap.Listener):
             filtered_hand = hand.stabilized_palm_position
             hand_speed  = hand.palm_velocity
                         
-            bytes = [len(frame.hands),strength,hand_identifier,filtered_hand[0],filtered_hand[1],filtered_hand[2],1]
+            bytes = [len(frame.hands),strength,hand_identifier,filtered_hand[0],filtered_hand[1],filtered_hand[2],life_time_of_hand,1]
             
-            #if handnummer == 1 and life_time_of_hand >= ctr and life_time_of_hand < (ctr + 0.01):
-            if handnummer == 1 and life_time_of_hand >= 4 and life_time_of_hand < 4 + 0.01:
-            
-               info = struct.pack('<7f', *bytes)
+            if handnummer == 1 and life_time_of_hand >= self.id and life_time_of_hand < (self.id + 0.01):
+            #if handnummer == 1 and life_time_of_hand >= 4 and life_time_of_hand < 4 + 0.01:
+               LeapMotionListener.ctr += 4
+               
+               info = struct.pack('<8f', *bytes)
           
                UDPSocket.sendto(info ,AddressPort)
-               
+             
             
   
          

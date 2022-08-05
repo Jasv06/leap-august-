@@ -43,7 +43,7 @@ def main():
    
    pub = rospy.Publisher('Robot_coordinates', Point, queue_size = 1)
    
-   r = rospy.Rate(100)
+   r = rospy.Rate(10)
    
    print("XYZ_robot_coordinates node initialized!")
      

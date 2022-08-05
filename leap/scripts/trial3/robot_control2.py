@@ -18,19 +18,8 @@ id_ = 0.0
 hands_number = 0.0
 hand_status = 1.0
 
-bot = InterbotixManipulatorXS("rx150","arm","gripper", gripper_pressure = 0.5)
+hand_life = 0.0
 
-bot.arm.go_to_home_pose()
-bot.gripper.open()
-time.sleep(1)
-bot.arm.set_single_joint_position("waist", -np.pi/2.0)    
-bot.arm.set_ee_cartesian_trajectory(x=0.05,z=-0.17)
-bot.gripper.close()
-time.sleep(1)
-bot.arm.set_ee_cartesian_trajectory(x=-0.05,z=0.17)
-time.sleep(1)
-bot.arm.set_single_joint_position("waist", 0)
-time.sleep(1)
 
 def xyz(data):
 
@@ -41,6 +30,7 @@ def xyz(data):
    x = data.x
    y = data.y
    z = data.z
+   
 
 def hand(data):
 
@@ -52,7 +42,17 @@ def hand(data):
    hands_number = data.handnummer
    hand_status = data.handstates
    
+   
+def Leap_life_of_hand(data): 
+   
+   global hand_life
+   
+   hand_life = data.data
+   
+   
 def main():
+   
+   bot = InterbotixManipulatorXS("rx150","arm","gripper", gripper_pressure = 0.5)
    
    rospy.init_node('rx150_robot_manipulation')
    
@@ -60,14 +60,14 @@ def main():
       
    r = rospy.Rate(100)
    
+   id_falso = 0
+   
    while not rospy.is_shutdown():
       
+      rospy.Subscriber("/hand_life_in_sensor", Float32, Leap_life_of_hand)
       rospy.Subscriber("/Robot_coordinates", Point, xyz)
       rospy.Subscriber("/hand_status", handstatus, hand)
-      print(x)
-      print(y)
-      print(z)
-         
+                     
       x_robot_control = x
       y_robot_control = y
       z_robot_control = z
@@ -76,30 +76,42 @@ def main():
       number_of_hands = hands_number
       status_of_hands = hand_status
       
-      #print("id :", identification_id)
-      #print("number of hands: ", number_of_hands)
-      #print("status of hands :", status_of_hands)
+
+      if number_of_hands > 0 and identification_id != id_falso and hand_life >= 4: 
+         bot.arm.go_to_home_pose()
+         bot.gripper.open()
+         time.sleep(1)
+         bot.arm.set_single_joint_position("waist", -np.pi/2.0)    
+         bot.arm.set_ee_cartesian_trajectory(x=0.05,z=-0.17)
+         bot.gripper.close()
+         time.sleep(1)
+         bot.arm.set_ee_cartesian_trajectory(x=-0.05,z=0.17)
+         time.sleep(1)
+         bot.arm.set_single_joint_position("waist", 0)
+         time.sleep(1)
+         id_falso = identification_id
+         continue
+         
+      """dont forget to update the line below"""
       
-      #print(number_of_hands)
-      #print(hand_status)
+      robot position = robot position 
       
-      if number_of_hands == 0 and hand_status == 1:
-         time.sleep(0.5)
-         print("sleeping")
-         continue 
-        
-      elif number_of_hands == 1 and hand_status < 0.7:
-        print("moving")
-        bot.arm.set_ee_pose_components(x=x_robot_control,y=y_robot_control,z=z_robot_control)
-        if hand_status < 0.5:
-             bot.gripper.open()
-             bot.arm.go_to_home_pose()
-             bot.arm.go_to_sleep_pose()
-             break
-        else: 
-             pass
-      else: 
-          pass
+      if hand_status > 0.5 and hand_life >= 4 or number_of_hands == 0 and robot is in home position:
+         bot.arm.set_single_joint_position("waist", -np.pi/2.0)    
+         bot.arm.set_ee_cartesian_trajectory(x=0.05,z=-0.17)
+         bot.gripper.open()
+         time.sleep(1)
+         bot.arm.set_ee_cartesian_trajectory(x=-0.05,z=0.17)
+         time.sleep(1)
+         bot.arm.set_single_joint_position("waist", 0)  
+         bot.arm.go_to_sleep_pose()        
+                           
+      if hand_status < 0.5 and hand_life >= 4:
+         bot.arm.set_ee_pose_components(x=x_robot_control,y=y_robot_control,z=z_robot_control)       
+         bot.gripper.open()
+         bot.arm.go_to_home_pose()
+         bot.arm.go_to_sleep_pose()
+      
       time.sleep(1)             
    
 

@@ -38,7 +38,7 @@ def main():
    
    pub = rospy.Publisher('hand_status', handstatus, queue_size = 1)
    
-   r = rospy.Rate(100)
+   r = rospy.Rate(10)
    
    print("Hand node initialized!")
      
